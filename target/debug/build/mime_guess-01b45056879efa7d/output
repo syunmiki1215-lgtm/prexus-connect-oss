@@ -1,0 +1,1 @@
+cargo:rustc-env=MIME_TYPES_GENERATED_PATH=C:\Users\akiny1124\Desktop\prexus-connect-oss\target\debug\build\mime_guess-01b45056879efa7d\out\mime_types_generated.rs
