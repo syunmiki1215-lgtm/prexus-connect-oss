@@ -1,105 +1,79 @@
-🛡️ Prexus Connect (OSS Edition)
+Prexus Connect is a next-generation, lightweight API gateway built in Rust. It embodies the "Shared Responsibility Model" in distributed systems and is designed to protect both vendors and clients from system failures and legal risks.
 
-Prexus Connect は、分散システムにおける「責任共有モデル」を具現化し、ベンダーと発注者の双方をシステム障害や法的リスクから守るために設計された、Rust製の次世代軽量APIゲートウェイです。
+Serving as the "entry point (freemium)" to the Prexus SaaS ecosystem, this OSS edition provides an environment where developers can easily conduct negative testing, helping to reduce debugging efforts and improve system robustness. With an in-memory design that completely eliminates database (DB) dependencies, no tedious setup is required. Anyone can launch it in seconds with a single command.
 
-本OSS版は、Prexus SaaSエコシステムの「入り口（フリーミアム）」として、開発者が異常系テストを容易に行える環境を提供し、デバッグ工数の削減とシステム堅牢性の向上を支援します。データベース（DB）への依存を完全に排除したインメモリ設計のため、面倒なセットアップは一切不要。コマンド一発で誰でも数秒で起動できます。
+✨ Core Features
 
-✨ コア機能 (Core Features)
+Prexus Crucible (Chaos Engineering Mock)
+Intentionally triggers "anomalies" that are difficult to avoid in standard web development, allowing you to test your application's error handling and fault tolerance before deployment.
+Timeout Simulation: Replicates communication spikes and delays (5 seconds).
+Conflict Simulation: Replicates data overwrite conflicts (HTTP 409).
+Data Loss Simulation: Replicates physical server/DB failures (HTTP 500).
 
-1. Prexus Crucible (カオスエンジニアリング・モック)
+Sentinel Audit Logger (Compliance Logger)
+Provides intelligent logging that automatically records all communications and prevents the leakage of confidential information.
+Auto-Masking: Detects sensitive information such as email addresses (strings containing @, etc.) in the URL path, automatically replaces them with masked_path, and records them securely.
+Performance Tracking: Measures latency for each request in milliseconds.
 
-一般的なWeb開発で回避が困難な「異常系」を意図的に引き起こし、アプリケーションのエラーハンドリングと耐障害性を運用前にテストします。
+Billing & Rate Limiter (Multi-Layered Cap / Failsafe)
+An auto-throttling feature that protects your system and finances from abnormal external traffic and infinite loops caused by bugs.
+Tenant Isolation: Individually aggregates usage per tenant using the x-tenant-id header.
+Safety Valve: When excessive requests (exceeding the limit) are detected, it blocks communication at the physical level without performing subsequent processing.
 
-Timeout Simulation: 通信スパイクや遅延（5秒）を再現。
+🛠️ Quick Start
 
-Conflict Simulation: データ書き換え競合（HTTP 409）を再現。
+Prerequisites
+Rust / Cargo (Latest stable version recommended)
 
-Data Loss Simulation: サーバー/DBの物理障害（HTTP 500）を再現。
+Installation and Startup
 
-2. Sentinel Audit Logger (コンプライアンス・ロガー)
-
-すべての通信を自動で記録し、機密情報の漏洩を防ぐインテリジェント・ロギングを提供します。
-
-Auto-Masking: URLパスに含まれるメールアドレス等（@を含む文字列など）の機密情報を検知し、自動で masked_path に置換して安全に記録。
-
-Performance Tracking: リクエストごとのレイテンシをミリ秒単位で計測。
-
-3. Billing & Rate Limiter (多層型キャップ制 / フェイルセーフ)
-
-外部からの異常なトラフィックや、バグによる無限ループからシステムと財務を守るオート・スロットリング機能です。
-
-Tenant Isolation: x-tenant-id ヘッダーによるテナントごとの利用状況の個別集計。
-
-Safety Valve: 過度なリクエスト（上限超過）を検知した場合、後続の処理を行わず通信を物理レベルで遮断。
-
-🛠️ クイックスタート
-
-必須環境
-
-Rust / Cargo (最新の安定版を推奨)
-
-インストールと起動
-
-# リポジトリのクローン
-git clone [https://github.com/your-username/prexus-connect-oss.git](https://github.com/your-username/prexus-connect-oss.git)
+Clone the repository
+git clone https://github.com/your-username/prexus-connect-oss.git
 cd prexus-connect-oss
 
-# サーバーの起動
+Start the server
 cargo run
 
+If 🚀 Prexus Connect (OSS) started on port 8080... is displayed, you are ready to go.
 
-🚀 Prexus Connect (OSS) started on port 8080... と表示されれば準備完了です。
+🧪 Usage Examples
 
-🧪 テスト実行例 (Usage)
+Open a new terminal and use the following commands to check the behavior of the API gateway.
 
-別ターミナルを開き、以下のコマンドでAPIゲートウェイの挙動を確認できます。
-
-平常時の導通確認
-
+Normal Connectivity Check
 curl -v -X POST http://localhost:8080/api/crucible/test
 
-
-遅延（Timeout）のシミュレーション
-
+Timeout Simulation
 curl -v -X POST http://localhost:8080/api/crucible/test -H "x-crucible-scenario: timeout"
 
-
-データ競合（Conflict 409）のシミュレーション
-
+Data Conflict (Conflict 409) Simulation
 curl -v -X POST http://localhost:8080/api/crucible/test -H "x-crucible-scenario: conflict"
 
-
-監査ログの自動マスキング機能の確認
-（サーバー側の標準出力に masked_path として記録されます）
-
+Auto-Masking Audit Log Check
+(Recorded as masked_path in the standard output on the server side)
 curl -v -X GET "http://localhost:8080/api/mock/generic?user=test@example.com"
 
+💡 Frequently Asked Questions (Q&A)
 
-💡 よくある質問 (Q&A)
+Q. Can this OSS only be used to test Rust applications?
+A. No, the language of the target application "does not matter at all".
+Because Prexus Connect operates as an independent API gateway (Web server), it can be placed in front of applications developed in any language or framework—such as Python, Node.js, PHP, Ruby, Go, or Java—for testing and integration.
 
-Q. このOSSで検証できるのはRust製のアプリケーションだけですか？
+🔮 Roadmap: The Prexus Ecosystem
 
+This Prexus Connect (OSS Edition) is merely the entrance to the "Prexus Ecosystem" we envision. This OSS version allows you to experience a portion of the "insurance value" proposed by Prexus for free.
 
-A. いいえ、対象となるアプリケーションの言語は「一切問いません」。
-Prexus Connectは独立したAPIゲートウェイ（Webサーバー）として動作するため、Python、Node.js、PHP、Ruby、Go、Javaなど、あらゆる言語・フレームワークで開発されたアプリの前段に配置して検証・連携が可能です。
+In the future, we plan to provide enterprise-grade features to meet more advanced requirements.
 
-🔮 展望：Prexusエコシステムについて (Roadmap)
+Crucible Pro: An advanced test scenario expansion pack of medical and financial grade.
+Crucible Verified: Issuance of an official robustness certificate for solid systems that have passed the tests.
+The Vault: Integration of an absolutely secure data vault with legal evidentiary capacity, not allowing a single character to be tampered with.
 
-この Prexus Connect (OSS Edition) は、私たちが構想する「Prexus エコシステム」のエントランス（入口）に過ぎません。本OSS版は、Prexusが提唱する「保険的価値」の一部を無料で体験できるものです。
+First, try using this OSS gateway to push your application's robustness and compliance to the absolute limit.
 
-将来的に、より高度な要件を満たすためのエンタープライズ向け機能の提供を予定しています。
+📄 License
 
-Crucible Pro: 医療・金融グレードの高度なテストシナリオ拡張パック。
-
-Crucible Verified: テストをクリアした強固なシステムに対する公式の堅牢性証明書の発行。
-
-The Vault: 法的証拠能力を持ち、1文字の改ざんも許さない絶対安全なデータ保存庫の統合。
-
-まずはこのOSSゲートウェイを通じて、あなたのアプリケーションの堅牢性とコンプライアンスを極限まで高めてみてください。
-
-📄 ライセンス
-
-本プロジェクトは MITライセンス の下で公開されています。
+This project is released under the MIT License.
 
 Developed by Akio Akasaka (Prexus Founder)
 Empowering Trust through Resilient Architecture.
