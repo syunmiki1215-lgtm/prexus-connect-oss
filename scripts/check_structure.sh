@@ -14,7 +14,7 @@ warn()  { echo "WARN:  $*"; warnings=$((warnings + 1)); }
 files=$(git -c core.quotePath=false ls-files)
 
 # 1. 必須ファイル
-for f in README.md README_ja.md .gitignore CLAUDE.md docs/PROJECT_CONVENTIONS.md; do
+for f in README.md README_ja.md .gitignore CLAUDE.md docs/PROJECT_CONVENTIONS.md docs/INDEX.md; do
   [ -f "$f" ] || error "必須ファイルがありません: $f"
 done
 
@@ -55,6 +55,14 @@ while IFS= read -r f; do
 done < <(printf '%s\n' "$files" | grep -E '^docs/[^/]+\.md$' | sed 's|^docs/||' \
            | grep -vE '^([A-Z0-9]+(_[A-Z0-9]+)*|[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-z0-9]+(_[a-z0-9]+)*)(_ja)?\.md$' \
            | sed 's|^|docs/|')
+
+# 8. docs/ 直下の文書はすべて docs/INDEX.md から参照されている
+if [ -f docs/INDEX.md ]; then
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    grep -qF "(${f#docs/})" docs/INDEX.md || error "docs/INDEX.md に載っていない文書です: $f"
+  done < <(printf '%s\n' "$files" | grep -E '^docs/[^/]+\.md$' | grep -v '^docs/INDEX\.md$')
+fi
 
 echo
 echo "検査結果: エラー ${errors} 件 / 警告 ${warnings} 件"
